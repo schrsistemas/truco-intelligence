@@ -45,7 +45,7 @@ describe("hand and round engine", () => {
   it("rejects mismatched players, empty hands and duplicate cards", () => {
     expect(startHand({
       handId: "hand-1", variantId: "test", rulesVersion: 1, maxRounds: 3,
-      players, hands: [deal.hands[0], { ...deal.hands[1], playerId: deal.hands[0].playerId }]
+      players, hands: [dealtHands[0], { ...dealtHands[1], playerId: dealtHands[0].playerId }]
     })).toMatchObject({ ok: false, reason: "INVALID_HAND" });
     expect(startHand({
       handId: "hand-1", variantId: "test", rulesVersion: 1, maxRounds: 3,
