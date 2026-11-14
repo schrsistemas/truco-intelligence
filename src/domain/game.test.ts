@@ -1,5 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { initialScore, reduceScore } from "./game";
+import { createGameStartedEvent, initialScore, reduceScore } from "./game";
+
+describe("game lifecycle events", () => {
+  it("creates a GAME_STARTED event with the initial score snapshot", () => {
+    const score = initialScore(15);
+    const event = createGameStartedEvent(score);
+
+    expect(event).toMatchObject({
+      type: "GAME_STARTED",
+      score,
+      occurredAt: expect.any(String),
+      eventId: expect.any(String)
+    });
+  });
+});
 
 describe("reduceScore", () => {
   it("starts with a zero score and selected target", () => {
