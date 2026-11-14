@@ -99,3 +99,19 @@ O módulo `src/domain/cards.ts` representa cartas por `rankId` e `suitId`. A def
 `dealCards` recebe uma sequência já ordenada, os IDs dos jogadores e a quantidade de cartas por jogador. Distribui em ciclo (uma carta para cada jogador por passagem), devolvendo mãos e monte restante. A função não embaralha: o embaralhamento e a ordem inicial deverão ser fornecidos pela política da variante, com algoritmo e fonte de aleatoriedade testáveis.
 
 A definição atual é infraestrutura de domínio, ainda não vinculada ao perfil `custom-scoreboard`. O registro de cartas em uma partida só será habilitado quando uma variante fornecer composição, quantidade por jogador, política de embaralhamento e interpretador de força/desempate. Isso evita apresentar um baralho genérico como regra oficial de qualquer região.
+
+
+## Motor neutro de mãos e rodadas
+
+O módulo `src/domain/rounds.ts` implementa o ciclo de mão sem codificar regra regional:
+
+- `startHand` valida a identificação e versão da variante, os jogadores, a distribuição recebida e a unicidade das cartas;
+- `playCard` exige que a carta pertença à mão do jogador, impede duas jogadas do mesmo jogador na rodada e remove a carta após a jogada válida;
+- a rodada só é avaliada quando todos os jogadores cadastrados tiverem jogado;
+- `RoundEvaluator` é injetado pela variante e retorna o jogador vencedor ou `null` para empate;
+- `startNextRound` só abre a próxima rodada após a conclusão da anterior e respeita `maxRounds`;
+- `HandResolver` recebe o histórico de rodadas e decide se a mão terminou e qual equipe venceu. Empates e critérios de encerramento permanecem sob responsabilidade da variante.
+
+Os eventos `HAND_STARTED`, `CARD_PLAYED`, `ROUND_FINISHED` e `HAND_FINISHED` são emitidos como dados imutáveis. Esta etapa ainda não persiste o estado da mão no Dexie nem conecta o motor à interface; isso exige primeiro fechar o contrato de configuração e interpretação da variante.
+
+O núcleo neutro não determina força de carta, manilha, ordem de naipes, sequência de jogadores, regra de empate, pedido de truco ou pontuação da mão. O perfil `custom-scoreboard` não deve ser apresentado como se essas regras já estivessem implementadas.
