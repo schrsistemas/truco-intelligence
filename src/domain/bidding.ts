@@ -88,7 +88,7 @@ export function validateBidRules(input: unknown): BidRulesValidation {
 function createEvent(
   type: BidEventType,
   pending: PendingBid,
-  details: Omit<BidEvent, "eventId" | "type" | "requestingTeam" | "levelId" | "occurredAt"> = {}
+  details: Omit<BidEvent, "eventId" | "type" | "requestingTeam" | "levelId" | "occurredAt">
 ): BidEvent {
   return {
     eventId: crypto.randomUUID(), type, requestingTeam: pending.requestingTeam,
