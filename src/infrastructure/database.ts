@@ -1,6 +1,6 @@
 import Dexie, { type EntityTable } from "dexie";
 import { DEFAULT_VARIANT, type GameVariant } from "../domain/variant";
-import type { ScoreEvent, ScoreState } from "../domain/game";
+import { createGameStartedEvent, type ScoreEvent, type ScoreState } from "../domain/game";
 
 export type GameStatus = "in-progress" | "finished";
 
@@ -18,6 +18,7 @@ export interface LocalGame {
 export interface StoredGameEvent extends ScoreEvent {
   gameId: string;
   sequence: number;
+  schemaVersion: number;
 }
 
 interface LocalSetting {
@@ -62,7 +63,7 @@ class TrucoDatabase extends Dexie {
 
         const storedEvents = await events.toArray();
         for (const event of storedEvents) {
-          await events.put({ ...event, gameId: event.gameId ?? "active" });
+          await events.put({ ...event, gameId: event.gameId ?? "active", schemaVersion: event.schemaVersion ?? 1 });
         }
       });
   }
@@ -99,7 +100,7 @@ export function createLocalGame(input?: {
 
 /** Recupera a partida ativa; migra o registro legado "active" sem descartar dados. */
 export async function getActiveGame(): Promise<LocalGame> {
-  return database.transaction("rw", database.games, database.settings, async () => {
+  return database.transaction("rw", database.games, database.settings, database.events, async () => {
     const setting = await database.settings.get("activeGameId");
     if (setting) {
       const selected = await database.games.get(setting.value);
@@ -118,6 +119,16 @@ export async function getActiveGame(): Promise<LocalGame> {
 
     await database.games.put(game);
     await database.settings.put({ key: "activeGameId", value: game.id });
+
+    if (!legacy) {
+      await database.events.add({
+        ...createGameStartedEvent(game.score),
+        gameId: game.id,
+        sequence: 1,
+        schemaVersion: 1
+      });
+    }
+
     return game;
   });
 }
@@ -134,9 +145,15 @@ export async function createNewGame(
     targetScore
   });
 
-  await database.transaction("rw", database.games, database.settings, async () => {
+  await database.transaction("rw", database.games, database.settings, database.events, async () => {
     await database.games.add(next);
     await database.settings.put({ key: "activeGameId", value: next.id });
+    await database.events.add({
+      ...createGameStartedEvent(next.score),
+      gameId: next.id,
+      sequence: 1,
+      schemaVersion: 1
+    });
   });
 
   return next;
@@ -154,6 +171,14 @@ export async function selectGame(gameId: string): Promise<LocalGame | undefined>
 
 export async function listRecentGames(limit = 20): Promise<LocalGame[]> {
   return database.games.orderBy("updatedAt").reverse().limit(limit).toArray();
+}
+
+/** Retorna a linha do tempo imutável de uma partida em ordem de sequência. */
+export async function listGameEvents(gameId: string): Promise<StoredGameEvent[]> {
+  return database.events
+    .where("[gameId+sequence]")
+    .between([gameId, Dexie.minKey], [gameId, Dexie.maxKey])
+    .toArray();
 }
 
 /**
@@ -184,7 +209,8 @@ export async function saveGameAndEvents(
       await database.events.add({
         ...event,
         gameId: game.id,
-        sequence: sequence++
+        sequence: sequence++,
+        schemaVersion: 1
       });
     }
   });
