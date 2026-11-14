@@ -228,7 +228,7 @@ export default function App() {
           <Stack spacing={1}>
             {teamStatistics.map((team) => (
               <Card key={team.teamName} variant="outlined">
-                <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }>
+                <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>
                   <Typography fontWeight={700}>{team.teamName}</Typography>
                   <Typography variant="body2" color="text.secondary">
                     {team.wins} vitórias • {team.losses} derrotas • {team.draws} empates
