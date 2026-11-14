@@ -222,7 +222,7 @@ export default function App() {
             {gameEvents.slice(-10).reverse().map((event) => (
               <ListItem key={event.eventId} divider alignItems="flex-start">
                 <ListItemText
-                  primary={event.type === "GAME_STARTED" ? "Partida iniciada" : event.type === "GAME_FINISHED" ? "Partida encerrada" : event.type === "GAME_RESET" ? "Placar reiniciado" : event.teamId === "team-a" ? "Pontuação da Dupla 1 atualizada" : "Pontuação da Dupla 2 atualizada"}
+                  primary={event.type === "GAME_STARTED" ? "Partida iniciada" : event.type === "GAME_FINISHED" ? "Partida encerrada" : event.type === "GAME_RESET" ? "Placar reiniciado" : event.teamId === "team-a" ? "Pontuação de " + game.teamAName + " atualizada" : "Pontuação de " + game.teamBName + " atualizada"}
                   secondary={new Date(event.occurredAt).toLocaleString("pt-BR") + " • " + event.score.teamA + " × " + event.score.teamB + " • sequência " + event.sequence}
                 />
               </ListItem>
