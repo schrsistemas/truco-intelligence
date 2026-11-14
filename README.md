@@ -63,4 +63,5 @@ MVP inicial: contador local com persistência IndexedDB, alvo configurável entr
 - [PWA e offline](docs/OFFLINE-PWA.md)
 - [Variantes e regras](docs/GAME-RULES.md)
 - [Orquestração de IA](docs/AI-ORCHESTRATION.md)
+- [Capacidade e escalabilidade](docs/engineering-capacity-and-scalability.md)
 - [RAG e conhecimento](docs/RAG-KNOWLEDGE.md)
