@@ -20,25 +20,32 @@ API Node.js -> sincronização -> PostgreSQL (+ pgvector opcional)
                          |
                   AI Gateway -> Orquestrador -> agentes
                                       |
-                              RAG / fontes citadas
+                         RAG / fontes citadas
+                                      |
+                     busca lexical local / embeddings
 ```
 
 ## Camadas
 
 ### Apresentação
+
 React, TypeScript, MUI e Vite. A interface não implementa regras de pontuação diretamente; chama casos de uso.
 
 ### Aplicação
+
 Coordena comandos, validações, transações e repositórios. Não conhece detalhes visuais nem fornecedores de IA.
 
 ### Domínio
+
 Motor de regras puro e determinístico. Recebe estado da partida, variante e comando; retorna novo estado e eventos. Não faz I/O.
 
 ### Infraestrutura local
+
 Dexie/IndexedDB para partidas, eventos, configurações e dados de conhecimento baixados. Service Worker/Cache Storage para shell, fontes e assets.
 
 ### Serviços remotos opcionais
-Backend Node.js e PostgreSQL para sincronização e colaboração. AI Gateway desacopla o produto dos provedores de modelos. A ausência desses serviços não bloqueia o modo local.
+
+Backend Node.js e PostgreSQL para sincronização e colaboração. AI Gateway desacopla o produto dos provedores de modelos. A ausência desses serviços não bloqueia o modo local. Busca lexical local permite recuperar conhecimento sem LLM ou conexão.
 
 ## Eventos de domínio
 
@@ -82,9 +89,11 @@ Cada evento deve possuir `eventId` (UUID), `gameId`, `sequence`, `type`, `schema
 
 No MVP, manter o esquema local mínimo e evoluir por migrações Dexie.
 
-## IA
+## IA e conhecimento
 
 Agentes previstos: Strategy, Probability, Teacher, Behavior, Psychology, Etymology, Historian e Coach. O orquestrador seleciona agentes por intenção. Nenhum agente tem autoridade para alterar o placar ou validar regras.
+
+`src/domain/ai-knowledge.ts` contém recuperação lexical local, filtro por variante, composição de contexto com fontes e validação estrutural das citações. Essa camada não é um provedor LLM, não persiste conteúdo e não substitui avaliação semântica das respostas. Um AI Gateway futuro deverá implementar um contrato de provedor substituível, limites de uso, timeout, cancelamento e bloqueio de fallback pago.
 
 ## Decisões e restrições
 
