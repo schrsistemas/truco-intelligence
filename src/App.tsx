@@ -180,6 +180,44 @@ export default function App() {
               <Button variant="outlined" onClick={() => void saveTeamNames()} disabled={!ready || saving || !teamAName.trim() || !teamBName.trim()}>
                 Salvar nomes
               </Button>
+              <Divider />
+              <Typography fontWeight={700}>Jogadores da partida</Typography>
+              <Typography variant="caption" color="text.secondary">
+                {game.variant.playersPerTeam} jogador(es) por equipe • os assentos seguem a configuração da variante.
+              </Typography>
+              {(["team-a", "team-b"] as const).map((teamId) => (
+                <Box key={teamId}>
+                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                    {teamId === "team-a" ? teamAName || "Dupla 1" : teamBName || "Dupla 2"}
+                  </Typography>
+                  <Stack spacing={1}>
+                    {game.players.filter((player) => player.teamId === teamId).sort((a, b) => a.seat - b.seat).map((player) => (
+                      <TextField
+                        key={player.playerId}
+                        label={`Jogador ${player.seat}`}
+                        value={player.name}
+                        onChange={(event) => {
+                          const players = game.players.map((item) =>
+                            item.playerId === player.playerId ? { ...item, name: event.target.value } : item
+                          );
+                          setGame({ ...game, players });
+                        }}
+                        size="small"
+                        inputProps={{ maxLength: 40 }}
+                        fullWidth
+                        disabled={saving || !ready}
+                      />
+                    ))}
+                  </Stack>
+                </Box>
+              ))}
+              <Button
+                variant="outlined"
+                onClick={() => void persistGame({ ...game, updatedAt: new Date().toISOString() })}
+                disabled={!ready || saving || game.players.some((player) => player.name.trim().length > 40)}
+              >
+                Salvar jogadores
+              </Button>
             </Stack>
           </CardContent>
         </Card>
