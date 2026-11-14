@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: [],
+      includeAssets: ["icon.svg"],
       manifest: {
         name: "Truco Intelligence",
         short_name: "Truco",
@@ -16,7 +16,9 @@ export default defineConfig({
         background_color: "#f5f6f2",
         display: "standalone",
         start_url: "/",
-        icons: []
+        icons: [
+          { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" }
+        ]
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
