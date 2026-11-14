@@ -8,13 +8,14 @@ const deck = createDeck({
   ranks: [{ id: "a", label: "Ás" }, { id: "k", label: "Rei" }, { id: "q", label: "Dama" }],
   suits: [{ id: "clubs", label: "Paus" }, { id: "hearts", label: "Copas" }]
 });
-const deal = dealCards(deck, players.map((player) => player.playerId), 3);
-if (!deal.ok) throw new Error("Fixture de distribuição inválida.");
+const dealResult = dealCards(deck, players.map((player) => player.playerId), 3);
+if (!dealResult.ok) throw new Error("Fixture de distribuição inválida.");
+const dealtHands = dealResult.hands;
 
 function newHand(): HandState {
   const result = startHand({
     handId: "hand-1", variantId: "test-variant", rulesVersion: 1,
-    maxRounds: 3, players, hands: deal.hands
+    maxRounds: 3, players, hands: dealtHands
   });
   if (!result.ok) throw new Error("Fixture de mão inválida.");
   return result.state;
@@ -35,7 +36,7 @@ describe("hand and round engine", () => {
   it("starts a versioned hand and emits HAND_STARTED", () => {
     const result = startHand({
       handId: "hand-1", variantId: "test-variant", rulesVersion: 1,
-      maxRounds: 3, players, hands: deal.hands
+      maxRounds: 3, players, hands: dealtHands
     });
     expect(result).toMatchObject({ ok: true, state: { rounds: [{ number: 1, plays: [] }] } });
     if (result.ok) expect(result.events[0].type).toBe("HAND_STARTED");
@@ -48,11 +49,11 @@ describe("hand and round engine", () => {
     })).toMatchObject({ ok: false, reason: "INVALID_HAND" });
     expect(startHand({
       handId: "hand-1", variantId: "test", rulesVersion: 1, maxRounds: 3,
-      players, hands: deal.hands.map((hand) => ({ ...hand, cards: [] }))
+      players, hands: dealtHands.map((hand) => ({ ...hand, cards: [] }))
     })).toMatchObject({ ok: false, reason: "INVALID_HAND" });
     expect(startHand({
       handId: "hand-1", variantId: "test", rulesVersion: 1, maxRounds: 3,
-      players, hands: deal.hands.map((hand) => ({ ...hand, cards: [deck[0]] }))
+      players, hands: dealtHands.map((hand) => ({ ...hand, cards: [deck[0]] }))
     })).toMatchObject({ ok: false, reason: "INVALID_HAND" });
   });
 
