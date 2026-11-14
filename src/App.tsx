@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
-  Alert, Box, Button, Card, CardContent, Container, Divider,
-  IconButton, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography
+  Alert, Box, Button, Card, CardContent, Chip, Container, Divider,
+  IconButton, List, ListItem, ListItemText, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography
 } from "@mui/material";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
@@ -10,13 +10,14 @@ import SportsEsportsRoundedIcon from "@mui/icons-material/SportsEsportsRounded";
 import HistoryRoundedIcon from "@mui/icons-material/HistoryRounded";
 import { reduceScore, type TeamId } from "./domain/game";
 import {
-  createNewGame, getActiveGame, listRecentGames,
+  createNewGame, getActiveGame, listGameEvents, listRecentGames,
   saveGameAndEvents, selectGame, type LocalGame
 } from "./infrastructure/database";
 
 export default function App() {
   const [game, setGame] = useState<LocalGame | null>(null);
   const [history, setHistory] = useState<LocalGame[]>([]);
+  const [gameEvents, setGameEvents] = useState<Awaited<ReturnType<typeof listGameEvents>>>([]);
   const [ready, setReady] = useState(false);
   const [saving, setSaving] = useState(false);
   const [storageError, setStorageError] = useState("");
@@ -27,6 +28,10 @@ export default function App() {
     setHistory(await listRecentGames(20));
   }
 
+  async function refreshGameEvents(gameId: string) {
+    setGameEvents(await listGameEvents(gameId));
+  }
+
   useEffect(() => {
     let active = true;
     getActiveGame()
@@ -35,7 +40,7 @@ export default function App() {
         setGame(current);
         setTeamAName(current.teamAName);
         setTeamBName(current.teamBName);
-        await refreshHistory();
+        await Promise.all([refreshHistory(), refreshGameEvents(current.id)]);
       })
       .catch(() => {
         if (active) setStorageError("Não foi possível acessar o armazenamento local deste navegador.");
@@ -52,7 +57,7 @@ export default function App() {
       await saveGameAndEvents(updated, events);
       setGame(updated);
       setStorageError("");
-      await refreshHistory();
+      await Promise.all([refreshHistory(), refreshGameEvents(updated.id)]);
     } catch {
       setStorageError("Falha ao salvar. A versão anterior foi preservada.");
     } finally {
@@ -81,7 +86,7 @@ export default function App() {
       setTeamAName(next.teamAName);
       setTeamBName(next.teamBName);
       setStorageError("");
-      await refreshHistory();
+      await Promise.all([refreshHistory(), refreshGameEvents(next.id)]);
     } catch {
       setStorageError("Não foi possível criar a nova partida. A partida atual foi preservada.");
     }
@@ -112,6 +117,7 @@ export default function App() {
       setTeamAName(selected.teamAName);
       setTeamBName(selected.teamBName);
       setStorageError("");
+      await refreshGameEvents(selected.id);
     } catch {
       setStorageError("Não foi possível abrir a partida selecionada.");
     }
@@ -203,6 +209,27 @@ export default function App() {
         <Typography variant="caption" color="text.secondary" textAlign="center">
           {saving ? "Salvando partida…" : ready ? "Partida salva neste dispositivo" : "Carregando dados locais…"}
         </Typography>
+
+        <Divider />
+        <Box>
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+            <HistoryRoundedIcon color="action" />
+            <Typography fontWeight={700}>Eventos desta partida</Typography>
+            <Chip size="small" label={gameEvents.length} />
+          </Stack>
+          {gameEvents.length === 0 && <Typography color="text.secondary" variant="body2">Nenhum evento registrado.</Typography>}
+          <List dense disablePadding>
+            {gameEvents.slice(-10).reverse().map((event) => (
+              <ListItem key={event.eventId} divider alignItems="flex-start">
+                <ListItemText
+                  primary={event.type === "GAME_STARTED" ? "Partida iniciada" : event.type === "GAME_FINISHED" ? "Partida encerrada" : event.type === "GAME_RESET" ? "Placar reiniciado" : event.teamId === "team-a" ? "Pontuação da Dupla 1 atualizada" : "Pontuação da Dupla 2 atualizada"}
+                  secondary={new Date(event.occurredAt).toLocaleString("pt-BR") + " • " + event.score.teamA + " × " + event.score.teamB + " • sequência " + event.sequence}
+                />
+              </ListItem>
+            ))}
+          </List>
+          {gameEvents.length > 10 && <Typography variant="caption" color="text.secondary">Exibindo os 10 eventos mais recentes de {gameEvents.length}.</Typography>}
+        </Box>
 
         <Divider />
         <Box>
