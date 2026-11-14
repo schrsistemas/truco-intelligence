@@ -39,6 +39,14 @@ describe("validateVariant", () => {
     });
   });
 
+  it("rejects cyclic custom rule objects instead of recursing indefinitely", () => {
+    const cyclic: Record<string, unknown> = {};
+    cyclic.self = cyclic;
+    const result = validateVariant({ ...DEFAULT_VARIANT, rules: cyclic });
+
+    expect(result).toMatchObject({ ok: false, errors: ["RULES_MUST_BE_JSON"] });
+  });
+
   it("rejects an invalid number of players per team", () => {
     const result = validateVariant({
       ...DEFAULT_VARIANT,
