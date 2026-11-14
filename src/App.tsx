@@ -75,11 +75,16 @@ export default function App() {
 
   async function resetGame(targetScore = game?.score.targetScore) {
     if (!game || saving || !ready) return;
-    const next = await createNewGame(game, targetScore ?? game.score.targetScore);
-    setGame(next);
-    setTeamAName(next.teamAName);
-    setTeamBName(next.teamBName);
-    await refreshHistory();
+    try {
+      const next = await createNewGame(game, targetScore ?? game.score.targetScore);
+      setGame(next);
+      setTeamAName(next.teamAName);
+      setTeamBName(next.teamBName);
+      setStorageError("");
+      await refreshHistory();
+    } catch {
+      setStorageError("Não foi possível criar a nova partida. A partida atual foi preservada.");
+    }
   }
 
   async function saveTeamNames() {
@@ -100,12 +105,16 @@ export default function App() {
 
   async function openHistory(gameId: string) {
     if (saving) return;
-    const selected = await selectGame(gameId);
-    if (!selected) return;
-    setGame(selected);
-    setTeamAName(selected.teamAName);
-    setTeamBName(selected.teamBName);
-    setStorageError("");
+    try {
+      const selected = await selectGame(gameId);
+      if (!selected) return;
+      setGame(selected);
+      setTeamAName(selected.teamAName);
+      setTeamBName(selected.teamBName);
+      setStorageError("");
+    } catch {
+      setStorageError("Não foi possível abrir a partida selecionada.");
+    }
   }
 
   function teamPanel(teamId: TeamId, name: string, score: number) {
