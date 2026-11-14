@@ -13,7 +13,7 @@ export type ScoreCommand =
   | { readonly type: "REMOVE_POINT"; readonly teamId: TeamId }
   | { readonly type: "RESET"; readonly targetScore?: 12 | 15 };
 
-export type ScoreEventType = "SCORE_UPDATED" | "GAME_FINISHED" | "GAME_RESET";
+export type ScoreEventType = "GAME_STARTED" | "SCORE_UPDATED" | "GAME_FINISHED" | "GAME_RESET";
 
 export interface ScoreEvent {
   readonly eventId: string;
@@ -43,6 +43,11 @@ function createEvent(type: ScoreEventType, score: ScoreState, teamId?: TeamId): 
     score,
     occurredAt: new Date().toISOString()
   };
+}
+
+/** Cria o evento inicial da partida para manter seu ciclo de vida auditável. */
+export function createGameStartedEvent(score: ScoreState): ScoreEvent {
+  return createEvent("GAME_STARTED", score);
 }
 
 export function reduceScore(state: ScoreState, command: ScoreCommand): ScoreResult {
