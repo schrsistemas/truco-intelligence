@@ -119,12 +119,12 @@ export function playCard(
 
   const playerHand = state.hands.find((hand) => hand.playerId === playerId);
   const cardIndex = playerHand?.cards.findIndex((card) => card.cardId === cardId) ?? -1;
-  if (cardIndex < 0) {
+  if (!playerHand || cardIndex < 0) {
     const alreadyPlayed = state.rounds.some((item) => item.plays.some((play) => play.card.cardId === cardId));
     return { ok: false, reason: alreadyPlayed ? "CARD_ALREADY_PLAYED" : "CARD_NOT_IN_HAND" };
   }
 
-  const card = playerHand!.cards[cardIndex];
+  const card = playerHand.cards[cardIndex];
   const play: PlayedCard = { playerId, teamId: player.teamId, card, playedAt: new Date().toISOString() };
   const nextHands = state.hands.map((hand) => hand.playerId === playerId
     ? { ...hand, cards: hand.cards.filter((item) => item.cardId !== cardId) }
