@@ -84,3 +84,9 @@ O histórico de eventos é uma trilha de auditoria. O snapshot atual continua se
 O domínio `src/domain/statistics.ts` agrega partidas encerradas por nome de dupla, calculando jogos, vitórias, derrotas, empates, pontos a favor, pontos contra e aproveitamento. Partidas em andamento são excluídas para não distorcer os indicadores. A agregação normaliza maiúsculas/minúsculas e espaços externos; nomes iguais representam a mesma identidade estatística.
 
 A consulta estatística usa todas as partidas locais, enquanto a lista visual do histórico permanece limitada às 20 mais recentes. Os indicadores são calculados no dispositivo e não dependem de rede ou IA.
+
+## Cadastro de jogadores
+
+O schema Dexie versão 3 adiciona o roster individual em cada partida. Cada assento possui UUID, equipe, posição (seat) e nome. A quantidade de assentos por equipe deriva de `variant.playersPerTeam` (1 a 4); portanto, a interface não fixa a partida em duplas. Partidas existentes recebem assentos vazios durante a migração, sem alterar placar, nomes das equipes ou eventos históricos.
+
+O cadastro de nomes é local à partida e pode ser editado antes ou durante o contador. O modelo não presume ordem de distribuição, posição de mão, embaralhamento ou regras de cartas. Esses comportamentos serão definidos pelo interpretador versionado da variante antes da implementação do registro de cartas e das rodadas.
