@@ -79,3 +79,8 @@ Partidas criadas pela aplicação registram `GAME_STARTED` como primeiro evento 
 A consulta `listGameEvents(gameId)` devolve os eventos em ordem de sequência. A interface apresenta os dez eventos mais recentes, sem alterar ou reordenar os registros persistidos. Partidas legadas migradas preservam seus eventos existentes; não é fabricado um evento de início retroativo quando não há evidência histórica suficiente.
 
 O histórico de eventos é uma trilha de auditoria. O snapshot atual continua sendo usado para renderização rápida; uma etapa futura deverá implementar reconstrução/verificação integral do estado a partir da trilha e testes de consistência.
+## Estatísticas locais
+
+O domínio `src/domain/statistics.ts` agrega partidas encerradas por nome de dupla, calculando jogos, vitórias, derrotas, empates, pontos a favor, pontos contra e aproveitamento. Partidas em andamento são excluídas para não distorcer os indicadores. A agregação normaliza maiúsculas/minúsculas e espaços externos; nomes iguais representam a mesma identidade estatística.
+
+A consulta estatística usa todas as partidas locais, enquanto a lista visual do histórico permanece limitada às 20 mais recentes. Os indicadores são calculados no dispositivo e não dependem de rede ou IA.
