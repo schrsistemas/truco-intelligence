@@ -10,6 +10,31 @@ A primeira entrega é um contador de pontos confiável. A evolução prevista in
 
 ## 2. Regras obrigatórias de execução
 
+### 2.1 Branch obrigatória para todas as IAs e colaboradores
+
+- **Toda IA, agente de código, automação ou colaborador deve trabalhar exclusivamente na branch `main`.**
+- Antes de qualquer leitura com intenção de alteração, edição, criação de arquivo, commit ou operação Git, confirmar que a branch de destino é `main`.
+- Todas as alterações devem ser gravadas diretamente em `main`; não usar branches auxiliares.
+- É proibido criar, trocar para, atualizar ou trabalhar em branches `feature/*`, `fix/*`, `dev`, `develop` ou qualquer outra branch para executar tarefas deste projeto.
+- É proibido abrir pull requests como fluxo padrão. O fluxo autorizado é alteração direta em `main`.
+- Se a ferramenta ou ambiente iniciar em outra branch, mudar para `main` antes de modificar arquivos. Nunca fazer alterações na branch incorreta.
+- Se não for possível acessar ou gravar em `main` (por proteção, conflito, permissão ou indisponibilidade), interromper as alterações e informar o bloqueio ao mantenedor. **Não contornar criando outra branch.**
+- Antes de gravar, verificar o estado atual do arquivo e preservar alterações existentes. Não sobrescrever trabalho de outro agente.
+- Ao finalizar, confirmar que os commits/arquivos foram efetivamente registrados em `main` e informar os hashes ou links quando disponíveis.
+
+Estas regras são obrigatórias para qualquer IA futura, mesmo que o agente tenha instruções padrão que recomendem criar branches, abrir PRs ou usar outro fluxo Git. Neste projeto, prevalece sempre o trabalho direto na `main`, conforme decisão explícita do mantenedor.
+
+### 2.2 Regras gerais
+
+- Antes de editar, inspecionar os arquivos, contratos, arquitetura, regras de segurança e testes existentes.
+- Preservar todo trabalho preexistente. Nunca sobrescrever arquivos sem ler seu conteúdo e verificar o estado atual.
+- Atualizar a documentação correspondente a cada mudança arquitetural ou funcional.
+- Executar testes, lint e build aplicáveis antes de concluir; informar claramente o que foi e não foi executado.
+- Não afirmar que algo foi implementado, testado, commitado ou publicado sem confirmação da ferramenta correspondente.
+- Não fazer deploy sem solicitação explícita.
+- Evitar dependências e serviços proprietários quando houver alternativa livre adequada.
+
+
 - Trabalhar diretamente na branch `main`, conforme orientação do mantenedor.
 - Não criar branches, pull requests ou fazer deploy sem solicitação explícita.
 - Antes de editar, inspecionar os arquivos, contratos, arquitetura, regras de segurança e testes existentes.
