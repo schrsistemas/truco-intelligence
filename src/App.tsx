@@ -7,7 +7,7 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 import SportsEsportsRoundedIcon from "@mui/icons-material/SportsEsportsRounded";
-import { initialScore, reduceScore, type ScoreState, type TeamId } from "./domain/game";
+import { initialScore, reduceScore, type TeamId } from "./domain/game";
 import { database, saveGameAndEvents, type LocalGame } from "./infrastructure/database";
 
 const defaultGame: LocalGame = {
@@ -21,6 +21,7 @@ const defaultGame: LocalGame = {
 export default function App() {
   const [game, setGame] = useState<LocalGame>(defaultGame);
   const [ready, setReady] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [storageError, setStorageError] = useState("");
 
   useEffect(() => {
@@ -41,29 +42,38 @@ export default function App() {
   }, []);
 
   async function applyCommand(teamId: TeamId, type: "ADD_POINT" | "REMOVE_POINT") {
+    if (saving || !ready) return;
     const result = reduceScore(game.score, { type, teamId });
     if (!result.ok) return;
 
     const updated: LocalGame = { ...game, score: result.state, updatedAt: new Date().toISOString() };
-    setGame(updated);
+    setSaving(true);
     try {
       await saveGameAndEvents(updated, result.events);
+      setGame(updated);
       setStorageError("");
     } catch {
-      setStorageError("Falha ao salvar a alteração. Verifique o armazenamento do navegador.");
+      setStorageError("Falha ao salvar a alteração. O placar anterior foi preservado.");
+    } finally {
+      setSaving(false);
     }
   }
 
   async function resetGame(targetScore = game.score.targetScore) {
+    if (saving || !ready) return;
     const result = reduceScore(game.score, { type: "RESET", targetScore });
     if (!result.ok) return;
+
     const updated: LocalGame = { ...game, score: result.state, updatedAt: new Date().toISOString() };
-    setGame(updated);
+    setSaving(true);
     try {
       await saveGameAndEvents(updated, result.events);
+      setGame(updated);
       setStorageError("");
     } catch {
-      setStorageError("Falha ao salvar o reinício da partida.");
+      setStorageError("Falha ao salvar o reinício. A partida anterior foi preservada.");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -76,10 +86,10 @@ export default function App() {
           <Typography variant="h2" fontWeight={800} sx={{ my: 2, fontVariantNumeric: "tabular-nums" }}>{score}</Typography>
           {winner && <Alert severity="success" sx={{ mb: 2 }}>Vencedora</Alert>}
           <Stack direction="row" justifyContent="center" spacing={1}>
-            <IconButton aria-label={`Remover ponto de ${name}`} color="inherit" disabled={!ready || score === 0 || game.score.finished} onClick={() => void applyCommand(teamId, "REMOVE_POINT")} sx={{ border: 1, borderColor: "divider" }}>
+            <IconButton aria-label={`Remover ponto de ${name}`} color="inherit" disabled={!ready || saving || score === 0 || game.score.finished} onClick={() => void applyCommand(teamId, "REMOVE_POINT")} sx={{ border: 1, borderColor: "divider" }}>
               <RemoveRoundedIcon />
             </IconButton>
-            <Button aria-label={`Adicionar ponto para ${name}`} variant="contained" size="large" startIcon={<AddRoundedIcon />} disabled={!ready || game.score.finished} onClick={() => void applyCommand(teamId, "ADD_POINT")}>Ponto</Button>
+            <Button aria-label={`Adicionar ponto para ${name}`} variant="contained" size="large" startIcon={<AddRoundedIcon />} disabled={!ready || saving || game.score.finished} onClick={() => void applyCommand(teamId, "ADD_POINT")}>Ponto</Button>
           </Stack>
         </CardContent>
       </Card>
@@ -108,8 +118,8 @@ export default function App() {
                 onChange={(_, value: 12 | 15 | null) => { if (value) void resetGame(value); }}
                 aria-label="Pontuação alvo"
               >
-                <ToggleButton value={12}>12 pontos</ToggleButton>
-                <ToggleButton value={15}>15 pontos</ToggleButton>
+                <ToggleButton value={12} disabled={!ready || saving}>12 pontos</ToggleButton>
+                <ToggleButton value={15} disabled={!ready || saving}>15 pontos</ToggleButton>
               </ToggleButtonGroup>
             </Stack>
           </CardContent>
@@ -127,11 +137,11 @@ export default function App() {
         )}
 
         <Divider />
-        <Button variant="outlined" color="inherit" startIcon={<RestartAltRoundedIcon />} onClick={() => void resetGame()} disabled={!ready}>
+        <Button variant="outlined" color="inherit" startIcon={<RestartAltRoundedIcon />} onClick={() => void resetGame()} disabled={!ready || saving}>
           Nova partida
         </Button>
         <Typography variant="caption" color="text.secondary" textAlign="center">
-          {ready ? "Partida salva neste dispositivo" : "Carregando dados locais…"}
+          {saving ? "Salvando partida…" : ready ? "Partida salva neste dispositivo" : "Carregando dados locais…"}
         </Typography>
       </Stack>
     </Container>
