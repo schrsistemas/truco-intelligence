@@ -115,3 +115,17 @@ O módulo `src/domain/rounds.ts` implementa o ciclo de mão sem codificar regra 
 Os eventos `HAND_STARTED`, `CARD_PLAYED`, `ROUND_FINISHED` e `HAND_FINISHED` são emitidos como dados imutáveis. Esta etapa ainda não persiste o estado da mão no Dexie nem conecta o motor à interface; isso exige primeiro fechar o contrato de configuração e interpretação da variante.
 
 O núcleo neutro não determina força de carta, manilha, ordem de naipes, sequência de jogadores, regra de empate, pedido de truco ou pontuação da mão. O perfil `custom-scoreboard` não deve ser apresentado como se essas regras já estivessem implementadas.
+
+
+## Escalada configurável de apostas
+
+O módulo `src/domain/bidding.ts` fornece uma máquina de estados independente da variante. A variante entrega `initialStake` e uma lista ordenada de níveis, cada um com identificador, rótulo, valor após aceite e pontos atribuídos ao solicitante em caso de recusa.
+
+- `requestBid` abre solicitação somente para o próximo nível da escada;
+- enquanto houver solicitação pendente, não é possível abrir outra;
+- somente a equipe adversária pode aceitar ou recusar;
+- `acceptBid` atualiza o valor vigente e permite a próxima escalada;
+- `declineBid` encerra a disputa e registra a equipe e os pontos concedidos;
+- identificadores devem ser únicos, valores crescem estritamente e a recusa não pode conceder mais que o valor vigente antes da proposta.
+
+Os rótulos Truco, Seis, Nove e Doze aparecem apenas como configuração de teste. Não são ativados como regra oficial de uma variante. O motor não altera diretamente o placar: a camada de aplicação deverá consumir o evento de recusa e aplicar a pontuação em transação atômica com o histórico.
