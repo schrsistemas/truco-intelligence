@@ -129,3 +129,21 @@ O módulo `src/domain/bidding.ts` fornece uma máquina de estados independente d
 - identificadores devem ser únicos, valores crescem estritamente e a recusa não pode conceder mais que o valor vigente antes da proposta.
 
 Os rótulos Truco, Seis, Nove e Doze aparecem apenas como configuração de teste. Não são ativados como regra oficial de uma variante. O motor não altera diretamente o placar: a camada de aplicação deverá consumir o evento de recusa e aplicar a pontuação em transação atômica com o histórico.
+
+
+## Contrato tipado de regras de uma variante jogável
+
+O módulo `src/domain/variant-rules.ts` introduz `TrucoVariantRules` e `validateTrucoVariantRules`, separados dos metadados genéricos de `GameVariant`. O contrato inclui:
+
+- definição explícita do baralho (ranks e naipes);
+- quantidade de cartas por jogador e limite de rodadas;
+- força inteira e sem empates para cada rank e naipe;
+- política de manilha `disabled` ou `next-rank-after-vira`;
+- resolução `best-of`, com quantidade de vitórias necessária e política para esgotamento;
+- configuração opcional da escada de apostas já validada por `validateBidRules`.
+
+A validação recebe `playersPerTeam` dos metadados da variante, calcula o total de jogadores e verifica se o baralho comporta a distribuição. Também exige `maxRounds <= cardsPerPlayer`, força completa e inequívoca para todos os ranks/naipes e um limiar de vitória compatível com o limite de rodadas. A configuração retornada é copiada para evitar que alterações posteriores nos objetos de entrada modifiquem silenciosamente o contrato validado.
+
+A política `next-rank-after-vira` declara que a manilha depende da vira da mão; o avaliador deverá receber esse contexto em tempo de execução e consultar a força configurada. O contrato não escolhe ranks, naipes, quantidade de cartas, valores de aposta ou regras regionais. Nenhuma variante regional fica habilitada apenas por existir esse schema.
+
+O perfil `custom-scoreboard` continua sendo somente um contador. A nova validação é infraestrutura para futuras variantes jogáveis, não uma declaração de que o motor completo de cartas e pontuação já está conectado à interface.
