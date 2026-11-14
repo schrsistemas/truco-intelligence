@@ -8,9 +8,9 @@ import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 import SportsEsportsRoundedIcon from "@mui/icons-material/SportsEsportsRounded";
 import HistoryRoundedIcon from "@mui/icons-material/HistoryRounded";
-import { initialScore, reduceScore, type TeamId } from "./domain/game";
+import { reduceScore, type TeamId } from "./domain/game";
 import {
-  createNewGame, database, getActiveGame, listRecentGames,
+  createNewGame, getActiveGame, listRecentGames,
   saveGameAndEvents, selectGame, type LocalGame
 } from "./infrastructure/database";
 
