@@ -173,6 +173,11 @@ export async function listRecentGames(limit = 20): Promise<LocalGame[]> {
   return database.games.orderBy("updatedAt").reverse().limit(limit).toArray();
 }
 
+/** Recupera todas as partidas locais para cálculos estatísticos completos. */
+export async function listAllGames(): Promise<LocalGame[]> {
+  return database.games.orderBy("updatedAt").reverse().toArray();
+}
+
 /** Retorna a linha do tempo imutável de uma partida em ordem de sequência. */
 export async function listGameEvents(gameId: string): Promise<StoredGameEvent[]> {
   return database.events
