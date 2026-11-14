@@ -35,15 +35,6 @@ Estas regras são obrigatórias para qualquer IA futura, mesmo que o agente tenh
 - Evitar dependências e serviços proprietários quando houver alternativa livre adequada.
 
 
-- Trabalhar diretamente na branch `main`, conforme orientação do mantenedor.
-- Não criar branches, pull requests ou fazer deploy sem solicitação explícita.
-- Antes de editar, inspecionar os arquivos, contratos, arquitetura, regras de segurança e testes existentes.
-- Preservar todo trabalho preexistente. Nunca sobrescrever arquivos sem ler seu conteúdo e verificar o estado atual.
-- Atualizar a documentação correspondente a cada mudança arquitetural ou funcional.
-- Executar testes, lint e build aplicáveis antes de concluir; informar claramente o que foi e não foi executado.
-- Não afirmar que algo foi implementado, testado, commitado ou publicado sem confirmação da ferramenta correspondente.
-- Evitar dependências e serviços proprietários quando houver alternativa livre adequada.
-
 ## 3. Política de custo zero
 
 A meta é custo financeiro incremental de software e infraestrutura de R$ 0,00.
