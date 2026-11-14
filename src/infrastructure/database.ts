@@ -1,6 +1,7 @@
 import Dexie, { type EntityTable } from "dexie";
 import { DEFAULT_VARIANT, type GameVariant } from "../domain/variant";
 import { createGameStartedEvent, type ScoreEvent, type ScoreState } from "../domain/game";
+import { createPlayerRoster, type Player } from "../domain/players";
 
 export type GameStatus = "in-progress" | "finished";
 
@@ -8,6 +9,7 @@ export interface LocalGame {
   id: string;
   teamAName: string;
   teamBName: string;
+  players: Player[];
   score: ScoreState;
   variant: GameVariant;
   status: GameStatus;
@@ -66,6 +68,25 @@ class TrucoDatabase extends Dexie {
           await events.put({ ...event, gameId: event.gameId ?? "active", schemaVersion: event.schemaVersion ?? 1 });
         }
       });
+
+    this.version(3)
+      .stores({
+        games: "id, status, createdAt, updatedAt",
+        events: "eventId, gameId, [gameId+sequence], [gameId+occurredAt]",
+        settings: "key"
+      })
+      .upgrade(async (transaction) => {
+        const games = transaction.table("games");
+        const storedGames = await games.toArray();
+        for (const game of storedGames) {
+          await games.put({
+            ...game,
+            players: Array.isArray(game.players)
+              ? game.players
+              : createPlayerRoster((game.variant ?? DEFAULT_VARIANT).playersPerTeam)
+          });
+        }
+      });
   }
 }
 
@@ -84,6 +105,7 @@ export function createLocalGame(input?: {
     id: crypto.randomUUID(),
     teamAName: input?.teamAName?.trim() || "Dupla 1",
     teamBName: input?.teamBName?.trim() || "Dupla 2",
+    players: createPlayerRoster(variant.playersPerTeam),
     score: {
       teamA: 0,
       teamB: 0,
@@ -112,6 +134,7 @@ export async function getActiveGame(): Promise<LocalGame> {
       ? {
           ...legacy,
           variant: legacy.variant ?? DEFAULT_VARIANT,
+          players: legacy.players ?? createPlayerRoster((legacy.variant ?? DEFAULT_VARIANT).playersPerTeam),
           status: legacy.score.finished ? "finished" as const : "in-progress" as const,
           createdAt: legacy.createdAt ?? legacy.updatedAt
         }
