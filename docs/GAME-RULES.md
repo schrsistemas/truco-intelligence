@@ -4,31 +4,41 @@
 
 Não existe uma única regra universal de truco. Paulista, Mineiro, Gaúcho e regras regionais podem divergir. A aplicação deve representar variantes como configuração versionada, sem codificar pressupostos regionais na interface.
 
+## Contrato de variante implementado
+
+O domínio define `GameVariant` em `src/domain/variant.ts`, com:
+
+- `variantId`: identificador estável, em minúsculas;
+- `name`: nome apresentado ao usuário;
+- `rulesVersion`: versão inteira e positiva;
+- `targetScore`: alvo suportado pelo contador atual (12 ou 15);
+- `playersPerTeam`: de 1 a 4;
+- `rules`: objeto JSON para parâmetros específicos da variante.
+
+A função `validateVariant` valida os metadados e garante que `rules` seja JSON serializável. Ela não afirma validar o significado das regras regionais: cada perfil de regras precisará de um interpretador próprio e de testes de conformidade.
+
+A variante inicial `custom-scoreboard` é explicitamente um perfil de contador. Não deve ser apresentada como implementação completa de Truco Paulista, Mineiro ou Gaúcho.
+
 ## Configuração de variante
 
-Modelo conceitual:
+Modelo conceitual de parâmetros específicos:
 
 ```json
 {
-  "variantId": "custom",
-  "name": "Minha regra",
+  "variantId": "custom-scoreboard",
+  "name": "Contador personalizado",
   "rulesVersion": 1,
   "targetScore": 12,
   "playersPerTeam": 2,
-  "deck": {},
-  "turnOrder": {},
-  "trickValues": [],
-  "manilha": {},
-  "tieBreak": {},
-  "specialCases": []
+  "rules": {}
 }
 ```
 
-Este exemplo é apenas estrutural. Valores e regras precisam ser definidos e validados para cada variante.
+O objeto `rules` permanece extensível. Não preencher valores regionais por suposição; cada conjunto de regras deve ser documentado e testado antes de ser habilitado.
 
 ## Versionamento
 
-Cada partida referencia `variantId` e `rulesVersion`. Alterar uma regra cria nova versão; partidas antigas continuam vinculadas à versão original.
+Cada partida deve referenciar `variantId` e `rulesVersion`. Alterar uma regra cria nova versão; partidas antigas continuam vinculadas à versão original. Uma versão publicada não deve ser modificada retroativamente.
 
 ## Motor
 
