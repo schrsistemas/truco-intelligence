@@ -90,3 +90,12 @@ A consulta estatística usa todas as partidas locais, enquanto a lista visual do
 O schema Dexie versão 3 adiciona o roster individual em cada partida. Cada assento possui UUID, equipe, posição (seat) e nome. A quantidade de assentos por equipe deriva de `variant.playersPerTeam` (1 a 4); portanto, a interface não fixa a partida em duplas. Partidas existentes recebem assentos vazios durante a migração, sem alterar placar, nomes das equipes ou eventos históricos.
 
 O cadastro de nomes é local à partida e pode ser editado antes ou durante o contador. O modelo não presume ordem de distribuição, posição de mão, embaralhamento ou regras de cartas. Esses comportamentos serão definidos pelo interpretador versionado da variante antes da implementação do registro de cartas e das rodadas.
+
+
+## Baralho e distribuição (núcleo neutro)
+
+O módulo `src/domain/cards.ts` representa cartas por `rankId` e `suitId`. A definição de baralho contém catálogos explícitos de ranks e naipes, e `createDeck` gera o produto cartesiano desses catálogos. Não há força, manilha, ordem de naipes ou descarte implícitos.
+
+`dealCards` recebe uma sequência já ordenada, os IDs dos jogadores e a quantidade de cartas por jogador. Distribui em ciclo (uma carta para cada jogador por passagem), devolvendo mãos e monte restante. A função não embaralha: o embaralhamento e a ordem inicial deverão ser fornecidos pela política da variante, com algoritmo e fonte de aleatoriedade testáveis.
+
+A definição atual é infraestrutura de domínio, ainda não vinculada ao perfil `custom-scoreboard`. O registro de cartas em uma partida só será habilitado quando uma variante fornecer composição, quantidade por jogador, política de embaralhamento e interpretador de força/desempate. Isso evita apresentar um baralho genérico como regra oficial de qualquer região.
