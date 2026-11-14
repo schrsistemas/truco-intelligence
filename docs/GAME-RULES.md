@@ -60,3 +60,14 @@ A interface deve refletir o resultado retornado pelo domínio.
 Eventos são imutáveis e ordenados por sequência por partida. Identificadores UUID permitem deduplicação. Eventos devem carregar versão de schema para evolução compatível.
 
 Eventos planejados: GAME_STARTED, GAME_RESET, CARD_PLAYED, TRUCO_REQUESTED, TRUCO_ACCEPTED, TRUCO_DECLINED, ROUND_FINISHED, SCORE_UPDATED e GAME_FINISHED.
+
+
+## Persistência de partidas
+
+O banco local Dexie usa a versão 2 do schema. A migração preserva o registro legado `active`, adiciona metadados de variante/status/datas e cria a tabela de configurações para identificar a partida ativa.
+
+Cada partida possui UUID próprio. Eventos usam sequência independente por `gameId`, com índice composto `[gameId+sequence]`. A gravação do snapshot e dos eventos ocorre em uma única transação IndexedDB. Repetições de `eventId` são ignoradas.
+
+A aplicação mantém as últimas 20 partidas na seção de histórico. Selecionar uma partida a torna ativa; criar nova partida não apaga as anteriores. Os nomes das duplas são persistidos no registro da partida.
+
+A migração de schema foi desenhada para preservar os dados da versão 1. A validação em navegador real ainda é necessária para confirmar comportamento em dispositivos com IndexedDB preexistente.
