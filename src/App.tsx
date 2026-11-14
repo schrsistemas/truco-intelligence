@@ -9,8 +9,9 @@ import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 import SportsEsportsRoundedIcon from "@mui/icons-material/SportsEsportsRounded";
 import HistoryRoundedIcon from "@mui/icons-material/HistoryRounded";
 import { reduceScore, type TeamId } from "./domain/game";
+import { calculateTeamStatistics } from "./domain/statistics";
 import {
-  createNewGame, getActiveGame, listGameEvents, listRecentGames,
+  createNewGame, getActiveGame, listAllGames, listGameEvents, listRecentGames,
   saveGameAndEvents, selectGame, type LocalGame
 } from "./infrastructure/database";
 
@@ -18,6 +19,7 @@ export default function App() {
   const [game, setGame] = useState<LocalGame | null>(null);
   const [history, setHistory] = useState<LocalGame[]>([]);
   const [gameEvents, setGameEvents] = useState<Awaited<ReturnType<typeof listGameEvents>>>([]);
+  const [teamStatistics, setTeamStatistics] = useState<ReturnType<typeof calculateTeamStatistics>>([]);
   const [ready, setReady] = useState(false);
   const [saving, setSaving] = useState(false);
   const [storageError, setStorageError] = useState("");
@@ -25,7 +27,16 @@ export default function App() {
   const [teamBName, setTeamBName] = useState("Dupla 2");
 
   async function refreshHistory() {
-    setHistory(await listRecentGames(20));
+    const [recentGames, allGames] = await Promise.all([listRecentGames(20), listAllGames()]);
+    setHistory(recentGames);
+    setTeamStatistics(calculateTeamStatistics(allGames.map((item) => ({
+      teamAName: item.teamAName,
+      teamBName: item.teamBName,
+      teamAScore: item.score.teamA,
+      teamBScore: item.score.teamB,
+      finished: item.score.finished,
+      winner: item.score.winner
+    }))));
   }
 
   async function refreshGameEvents(gameId: string) {
@@ -209,6 +220,27 @@ export default function App() {
         <Typography variant="caption" color="text.secondary" textAlign="center">
           {saving ? "Salvando partida…" : ready ? "Partida salva neste dispositivo" : "Carregando dados locais…"}
         </Typography>
+
+        <Divider />
+        <Box>
+          <Typography fontWeight={700} sx={{ mb: 1 }}>Estatísticas das duplas</Typography>
+          {teamStatistics.length === 0 && <Typography color="text.secondary" variant="body2">As estatísticas aparecerão após a primeira partida encerrada.</Typography>}
+          <Stack spacing={1}>
+            {teamStatistics.map((team) => (
+              <Card key={team.teamName} variant="outlined">
+                <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }>
+                  <Typography fontWeight={700}>{team.teamName}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {team.wins} vitórias • {team.losses} derrotas • {team.draws} empates
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {team.gamesPlayed} partidas • aproveitamento {team.winRate.toFixed(1)}% • pontos {team.pointsFor} a favor / {team.pointsAgainst} contra
+                  </Typography>
+                </CardContent>
+              </Card>
+            ))}
+          </Stack>
+        </Box>
 
         <Divider />
         <Box>
