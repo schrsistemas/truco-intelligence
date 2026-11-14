@@ -23,6 +23,7 @@ export interface GameVariant {
 }
 
 export type VariantValidationError =
+  | "INVALID_INPUT"
   | "INVALID_ID"
   | "INVALID_NAME"
   | "INVALID_RULES_VERSION"
@@ -44,7 +45,7 @@ export const DEFAULT_VARIANT: GameVariant = {
   rules: {}
 };
 
-function isJsonValue(value: unknown): value is JsonValue {
+function isJsonValue(value: unknown, ancestors = new WeakSet<object>()): value is JsonValue {
   if (
     value === null ||
     typeof value === "string" ||
@@ -57,15 +58,19 @@ function isJsonValue(value: unknown): value is JsonValue {
     return Number.isFinite(value);
   }
 
-  if (Array.isArray(value)) {
-    return value.every(isJsonValue);
-  }
-
   if (typeof value === "object") {
-    const prototype = Object.getPrototypeOf(value);
-    if (prototype !== Object.prototype && prototype !== null) return false;
+    if (ancestors.has(value)) return false;
 
-    return Object.values(value as Record<string, unknown>).every(isJsonValue);
+    const prototype = Object.getPrototypeOf(value);
+    if (!Array.isArray(value) && prototype !== Object.prototype && prototype !== null) return false;
+
+    ancestors.add(value);
+    const values = Array.isArray(value)
+      ? value
+      : Object.values(value as Record<string, unknown>);
+    const valid = values.every((item) => isJsonValue(item, ancestors));
+    ancestors.delete(value);
+    return valid;
   }
 
   return false;
@@ -78,7 +83,7 @@ function isJsonValue(value: unknown): value is JsonValue {
  */
 export function validateVariant(input: unknown): VariantValidationResult {
   if (typeof input !== "object" || input === null || Array.isArray(input)) {
-    return { ok: false, errors: ["INVALID_ID"] };
+    return { ok: false, errors: ["INVALID_INPUT"] };
   }
 
   const candidate = input as Record<string, unknown>;
