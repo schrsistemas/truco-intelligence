@@ -29,12 +29,17 @@ class TrucoDatabase extends Dexie {
 
 export const database = new TrucoDatabase();
 
+/**
+ * Persiste o snapshot e os eventos na mesma transação.
+ * A sequência é obtida pelo maior número já gravado, não pela ordenação
+ * de data/hora, que pode empatar ou sofrer ajustes no relógio do dispositivo.
+ */
 export async function saveGameAndEvents(
   game: LocalGame,
   events: readonly ScoreEvent[]
 ): Promise<void> {
   await database.transaction("rw", database.games, database.events, async () => {
-    const previous = await database.events.where("gameId").equals("active").last();
+    const previous = await database.events.orderBy("sequence").last();
     let sequence = (previous?.sequence ?? 0) + 1;
 
     await database.games.put(game);
