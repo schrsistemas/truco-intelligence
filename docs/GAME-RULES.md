@@ -71,3 +71,11 @@ Cada partida possui UUID próprio. Eventos usam sequência independente por `gam
 A aplicação mantém as últimas 20 partidas na seção de histórico. Selecionar uma partida a torna ativa; criar nova partida não apaga as anteriores. Os nomes das duplas são persistidos no registro da partida.
 
 A migração de schema foi desenhada para preservar os dados da versão 1. A validação em navegador real ainda é necessária para confirmar comportamento em dispositivos com IndexedDB preexistente.
+
+## Ciclo de vida e auditoria
+
+Partidas criadas pela aplicação registram `GAME_STARTED` como primeiro evento (sequência 1). O evento contém o snapshot inicial do placar. Cada evento persistido recebe `schemaVersion: 1`, permitindo evoluir o formato sem reinterpretar silenciosamente registros antigos.
+
+A consulta `listGameEvents(gameId)` devolve os eventos em ordem de sequência. A interface apresenta os dez eventos mais recentes, sem alterar ou reordenar os registros persistidos. Partidas legadas migradas preservam seus eventos existentes; não é fabricado um evento de início retroativo quando não há evidência histórica suficiente.
+
+O histórico de eventos é uma trilha de auditoria. O snapshot atual continua sendo usado para renderização rápida; uma etapa futura deverá implementar reconstrução/verificação integral do estado a partir da trilha e testes de consistência.
