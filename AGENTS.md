@@ -123,3 +123,22 @@ Manter atualizados:
 ## 10. Critério de conclusão
 
 Uma tarefa só pode ser marcada como concluída quando código, documentação e testes aplicáveis estiverem coerentes. Relatar arquivos alterados, validações executadas, limitações e próximos passos.
+
+
+## 10. Capacidade, escalabilidade e custo previsível
+
+Aplicar obrigatoriamente o padrão em `docs/engineering-capacity-and-scalability.md` a toda evolução do produto.
+
+- O jogo principal deve continuar offline-first e funcional sem backend, cloud ou LLM.
+- Antes de adicionar serviço remoto, API, banco, storage, sincronização ou IA, verificar quotas, limites, retenção, concorrência, disponibilidade e condições de cobrança.
+- Preservar custo incremental R$ 0; não usar trial, cartão, créditos promocionais, billing ou excedentes faturáveis.
+- Dimensionar por operações por usuário/partida/evento, frequência de sincronização, tamanho do histórico, dispositivos e picos; não presumir escala por quantidade de usuários.
+- IndexedDB é armazenamento de dados locais; Service Worker Cache Storage é somente para recursos. Não migrar dados de partida para cache de assets.
+- Separar dados locais, sincronização remota opcional, cache de recursos, telemetria e filas. A indisponibilidade remota não pode impedir o jogo nem causar perda de partidas locais.
+- Usar UUID, eventos imutáveis, idempotência e versionamento de regras para sincronização e recuperação sem duplicidade.
+- Definir limites de tamanho/quantidade de eventos, retenção, paginação e estratégia de compactação/arquivo sem apagar histórico do usuário por inferência.
+- Tratar offline, reconexão, conflito, duplicidade, falha parcial, timeout e 429 com comportamento explícito; retries limitados e sem tempestade.
+- Testar volume de partidas, histórico extenso, concorrência entre abas/dispositivos, migrações IndexedDB, recuperação e funcionamento sem rede.
+- Não declarar capacidade de sincronização multiusuário ou número de usuários suportados sem backend real, testes de carga e evidência.
+
+A escala do contador local e a escala de serviços remotos são capacidades diferentes e devem ser medidas separadamente.
